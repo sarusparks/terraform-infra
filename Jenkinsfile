@@ -19,27 +19,27 @@ pipeline {
             }
         }
 
-        stage('Setup Terraform') {
-            steps {
-                echo 'Setting up Terraform...'
-                sh '''
-                    mkdir -p $HOME/bin
-                    export PATH=$HOME/bin:$PATH
-                    if ! command -v terraform >/dev/null; then
-                        echo "Terraform not found. Installing..."
-                        curl -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-                        unzip terraform.zip
-                        mv terraform $HOME/bin/
-                        rm terraform.zip
-                    else
-                        echo "Terraform already installed."
-                    fi
+       stage('Setup Terraform') {
+    steps {
+        echo 'Setting up Terraform...'
+        sh '''
+            mkdir -p $HOME/bin
+            export PATH=$HOME/bin:$PATH
 
-                    terraform -version
-                '''
-            }
-        }
+            if ! command -v terraform >/dev/null; then
+                echo "Terraform not found. Installing..."
+                curl -s -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                unzip -o terraform.zip
+                mv -f terraform $HOME/bin/
+                rm -f terraform.zip
+            else
+                echo "Terraform already installed."
+            fi
 
+            terraform -version
+        '''
+    }
+}
         stage('Initialize Terraform') {
             steps {
                 echo 'Initializing Terraform...'
