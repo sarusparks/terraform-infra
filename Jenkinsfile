@@ -87,11 +87,11 @@ pipeline {
         failure {
             echo 'Pipeline failed. Please check the logs.'
         }
-        // cleanup {
-        //     echo 'Cleaning up resources...'
-        //     dir('vpc-terraform/module') {
-        //         sh 'terraform destroy -auto-approve || true'
-        //     }
-        // }
+         cleanup {
+           echo 'Cleaning up resources...'
+             dir('vpc-terraform/module') {
+              sh 'terraform destroy -auto-approve || true'
+            }
+         }
     }
 }
