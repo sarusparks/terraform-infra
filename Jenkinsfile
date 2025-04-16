@@ -1,15 +1,16 @@
 pipeline {
     agent any
- 
+
     environment {
-        TERRAFORM_VERSION = '1.5.0'  // Replace with your Terraform version
-        AWS_REGION = 'us-east-1'    // Replace with your preferred AWS region
+        TERRAFORM_VERSION = '1.5.0'         // Terraform version
+        AWS_REGION = 'us-east-1'            // AWS region
+        PATH = "${env.HOME}/bin:${env.PATH}" // Add local bin to PATH
     }
- 
+
     parameters {
         booleanParam(name: 'APPLY_CHANGES', defaultValue: false, description: 'Apply the Terraform plan if true')
     }
- 
+
     stages {
         stage('Checkout Project') {
             steps {
@@ -17,30 +18,37 @@ pipeline {
                 git branch: 'main', credentialsId: 'git-sidhu', url: 'https://github.com/siddhartha-surnoi/logistics-terraform.git'
             }
         }
- 
+
         stage('Setup Terraform') {
             steps {
                 echo 'Setting up Terraform...'
                 sh '''
-                    terraform -version || {
+                    mkdir -p $HOME/bin
+                    export PATH=$HOME/bin:$PATH
+                    if ! command -v terraform >/dev/null; then
+                        echo "Terraform not found. Installing..."
                         curl -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
                         unzip terraform.zip
-                        mv terraform /usr/local/bin/
+                        mv terraform $HOME/bin/
                         rm terraform.zip
-                    }
+                    else
+                        echo "Terraform already installed."
+                    fi
+
+                    terraform -version
                 '''
             }
         }
- 
+
         stage('Initialize Terraform') {
             steps {
                 echo 'Initializing Terraform...'
-                dir('vpc-terraform/module') { // Adjust to your Terraform directory structure
+                dir('vpc-terraform/module') { // Adjust the path as per your repo
                     sh 'terraform init'
                 }
             }
         }
- 
+
         stage('Validate Terraform') {
             steps {
                 echo 'Validating Terraform files...'
@@ -49,7 +57,7 @@ pipeline {
                 }
             }
         }
- 
+
         stage('Plan Terraform') {
             steps {
                 echo 'Creating a Terraform plan...'
@@ -58,7 +66,7 @@ pipeline {
                 }
             }
         }
- 
+
         stage('Apply Terraform') {
             when {
                 expression { return params.APPLY_CHANGES }
@@ -71,7 +79,7 @@ pipeline {
             }
         }
     }
- 
+
     post {
         success {
             echo 'Pipeline executed successfully!'
