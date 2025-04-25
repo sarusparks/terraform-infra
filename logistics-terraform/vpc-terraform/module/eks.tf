@@ -30,8 +30,8 @@ module "eks" {
   eks_managed_node_groups = {
     logistics_nodes = {
       ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t3a.medium"]
-      capacity_type  = "SPOT"
+      instance_types = ["t3.medium"]
+      capacity_type  = "ON-DEMAND"
       disk_size      = 10
       min_size       = 2
       max_size       = 10
@@ -40,14 +40,22 @@ module "eks" {
         AmazonEBSCSIDriverPolicy          = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
         AmazonElasticFileSystemFullAccess = "arn:aws:iam::aws:policy/AmazonElasticFileSystemFullAccess"
         ElasticLoadBalancingFullAccess    = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
-         AmazonEKSClusterPolicy = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-         AmazonEKSServicePolicy = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+        AmazonEKSClusterPolicy = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+        AmazonEKSServicePolicy = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
       }
     }
   }
 
   enable_cluster_creator_admin_permissions = true
   create_cloudwatch_log_group              = false
+
+  map_users = [
+    {
+      userarn  = "arn:aws:iam::664882920904:user/siddartha"
+      username = "siddartha"
+      groups   = ["system:masters"]
+    }
+  ]
 
   tags = {
     Environment = "dev"
