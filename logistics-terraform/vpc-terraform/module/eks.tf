@@ -7,16 +7,14 @@ module "eks" {
   cluster_version = "1.31"
  
   cluster_endpoint_public_access = true
-
-  cluster_endpoint_private_access = false
  
   cluster_addons = {
 
-    coredns    = { addon_version = "1.8.7-eksbuild.1" }
+    coredns    = {}
 
-    kube-proxy = { addon_version = "1.21.2-eksbuild.2" }
+    kube-proxy = {}
 
-    vpc-cni    = { addon_version = "1.11.4-eksbuild.1" }
+    vpc-cni    = {}
 
   }
  
@@ -32,13 +30,13 @@ module "eks" {
  
   create_node_security_group = false
 
-  node_security_group_id     = module.security_group.sg_id[1]
+  node_security_group_id     = module.security_group.sg_id[0]
  
   eks_managed_node_group_defaults = {
 
     instance_types = ["t3a.medium"]
 
-    disk_size      = 20
+    disk_size      = 10
 
   }
  
@@ -48,11 +46,11 @@ module "eks" {
 
       ami_type       = "AL2023_x86_64_STANDARD"
 
-      instance_types = ["t3a.medium"]
+      instance_types = ["t3.medium"]
 
-      capacity_type  = "SPOT"
+      capacity_type  = "ON_DEMAND"
 
-      disk_size      = 20
+      disk_size      = 10
 
       min_size       = 2
 
@@ -68,9 +66,9 @@ module "eks" {
 
         ElasticLoadBalancingFullAccess    = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
 
-        AmazonEKSWorkerNodePolicy         = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        # AmazonEKSClusterPolicy = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 
-        AmazonEC2ContainerRegistryReadOnly = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+        # AmazonEKSServicePolicy = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 
       }
 
@@ -91,5 +89,4 @@ module "eks" {
   }
 
 }
-
  
