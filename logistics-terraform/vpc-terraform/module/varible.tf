@@ -240,7 +240,6 @@ variable "cluster_version" {
   default = "1.31"
 }
 variable "node_groups" {
- 
   description = "EKS node group configuration"
   type = map(object({
     instance_types = list(string)
