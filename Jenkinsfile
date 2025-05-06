@@ -119,8 +119,5 @@ pipeline {
         failure {
             echo "\033[1;31m Pipeline failed. Please check the logs.\033[0m"
         }
-        always {
-            echo "\033[1;34m Cleanup stage (if needed) completed.\033[0m"
-        }
     }
 }
