@@ -33,7 +33,7 @@ pipeline {
         stage('Checkout Project') {
             steps {
                 echo "\033[1;32mChecking out the repository...\033[0m"
-                git branch: 'main', credentialsId: 'git-sidhu', url: 'https://github.com/siddhartha-surnoi/logistics-terraform.git'
+                git branch: 'main', credentialsId: 'git-access', url: 'https://github.com/sarusparks/terraform-infra.git'
             }
         }
 
