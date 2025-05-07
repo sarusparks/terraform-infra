@@ -263,5 +263,5 @@ variable "node_groups" {
       }
     }
   }
-}
+
 
