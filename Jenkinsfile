@@ -59,58 +59,54 @@ pipeline {
             }
         }
 
-        stage('Terraform Actions') {
+        stage('Initialize Terraform') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'sidhu_aws_access_key']]) {
-                    withEnv(["AWS_REGION=${env.AWS_REGION}"]) {
+                echo "\033[1;36mInitializing Terraform...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh 'terraform init -input=false'
+                }
+            }
+        }
 
-                        stage('Initialize Terraform') {
-                            echo "\033[1;36mInitializing Terraform...\033[0m"
-                            dir("${params.TF_WORKING_DIR}") {
-                                sh 'terraform init -input=false'
-                            }
-                        }
+        stage('Validate Terraform') {
+            steps {
+                echo "\033[1;36mValidating Terraform files...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh 'terraform validate'
+                }
+            }
+        }
 
-                        stage('Validate Terraform') {
-                            echo "\033[1;36mValidating Terraform files...\033[0m"
-                            dir("${params.TF_WORKING_DIR}") {
-                                sh 'terraform validate'
-                            }
-                        }
+        stage('Plan Terraform') {
+            steps {
+                echo "\033[1;36mCreating a Terraform plan...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform plan -var='environment=${params.ENVIRONMENT}'"
+                }
+            }
+        }
 
-                        stage('Plan Terraform') {
-                            echo "\033[1;36mCreating a Terraform plan...\033[0m"
-                            dir("${params.TF_WORKING_DIR}") {
-                                sh "terraform plan -var='environment=${params.ENVIRONMENT}'"
-                            }
-                        }
+        stage('Apply Terraform') {
+            when {
+                expression { return params.APPLY_CHANGES && !params.DESTROY_INFRA }
+            }
+            steps {
+                echo "\033[1;33mApplying the Terraform plan...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform apply -auto-approve -var='environment=${params.ENVIRONMENT}'"
+                }
+            }
+        }
 
-                        stage('Apply Terraform') {
-                            when {
-                                expression { return params.APPLY_CHANGES && !params.DESTROY_INFRA }
-                            }
-                            steps {
-                                echo "\033[1;33mApplying the Terraform plan...\033[0m"
-                                dir("${params.TF_WORKING_DIR}") {
-                                    sh "terraform apply -auto-approve -var='environment=${params.ENVIRONMENT}'"
-                                }
-                            }
-                        }
-
-                        stage('Destroy Terraform') {
-                            when {
-                                expression { return params.DESTROY_INFRA }
-                            }
-                            steps {
-                                input message: "Are you sure you want to destroy infrastructure in '${params.ENVIRONMENT}'?", ok: "Yes, destroy it"
-                                echo "\033[1;31mDestroying infrastructure...\033[0m"
-                                dir("${params.TF_WORKING_DIR}") {
-                                    sh "terraform destroy -auto-approve -var='environment=${params.ENVIRONMENT}'"
-                                }
-                            }
-                        }
-
-                    }
+        stage('Destroy Terraform') {
+            when {
+                expression { return params.DESTROY_INFRA }
+            }
+            steps {
+                input message: "Are you sure you want to destroy infrastructure in '${params.ENVIRONMENT}'?", ok: "Yes, destroy it"
+                echo "\033[1;31mDestroying infrastructure...\033[0m"
+                dir("${params.TF_WORKING_DIR}") {
+                    sh "terraform destroy -auto-approve -var='environment=${params.ENVIRONMENT}'"
                 }
             }
         }
